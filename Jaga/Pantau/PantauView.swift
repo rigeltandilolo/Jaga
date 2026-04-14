@@ -11,7 +11,7 @@ import MapKit
 struct PantauView: View {
     @Binding var selectedTab: Int
     @StateObject private var monitoringManager = MonitoringManager.shared
-    @StateObject private var watchManager = WatchConnectivityManager.shared
+    @ObservedObject private var watchManager = WatchConnectivityManager.shared
     @StateObject private var locationManager = LocationManager()
     
     // Bottom sheet state
@@ -85,7 +85,6 @@ struct PantauView: View {
                 MapCompass()
             }
             .ignoresSafeArea()
-            
             // MARK: - Status Pill
             StatusPillView(isMemantau: monitoringManager.isMemantau)
                 .padding(.top, 60)
@@ -223,4 +222,3 @@ struct PantauView: View {
 #Preview {
     PantauView(selectedTab: .constant(0))
 }
-

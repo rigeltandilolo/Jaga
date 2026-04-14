@@ -37,7 +37,7 @@ class WatchLocationManager: NSObject, ObservableObject, CLLocationManagerDelegat
     }
     
     private func sendLocationToiPhone(location: CLLocation) {
-        guard WCSession.default.isReachable else { return }
+        guard WCSession.isSupported() else { return }
         
         let locationData: [String: Any] = [
             "latitude": location.coordinate.latitude,
@@ -45,8 +45,18 @@ class WatchLocationManager: NSObject, ObservableObject, CLLocationManagerDelegat
             "timestamp": Date().timeIntervalSince1970
         ]
         
-        WCSession.default.sendMessage(locationData, replyHandler: nil) { error in
-            print("Error kirim lokasi: \(error.localizedDescription)")
+        // Coba sendMessage dulu (real-time)
+        if WCSession.default.isReachable {
+            WCSession.default.sendMessage(locationData, replyHandler: { _ in }) { error in
+                print("sendMessage error: \(error.localizedDescription)")
+            }
+        }
+        
+        // Backup via updateApplicationContext (tidak butuh reachable)
+        do {
+            try WCSession.default.updateApplicationContext(locationData)
+        } catch {
+            print("updateApplicationContext error: \(error.localizedDescription)")
         }
     }
     

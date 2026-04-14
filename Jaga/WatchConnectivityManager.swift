@@ -54,4 +54,17 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
             )
         }
     }
+    
+    func session(_ session: WCSession,
+                 didReceiveApplicationContext applicationContext: [String: Any]) {
+        guard let lat = applicationContext["latitude"] as? Double,
+              let lon = applicationContext["longitude"] as? Double else { return }
+        
+        DispatchQueue.main.async {
+            self.lokasiWatch = CLLocationCoordinate2D(
+                latitude: lat,
+                longitude: lon
+            )
+        }
+    }
 }
