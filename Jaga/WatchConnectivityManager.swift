@@ -7,11 +7,13 @@
 
 import WatchConnectivity
 import Combine
+import CoreLocation
 
 class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     static let shared = WatchConnectivityManager()
     
     @Published var isWatchConnected: Bool = false
+    @Published var lokasiWatch: CLLocationCoordinate2D?
     
     override init() {
         super.init()
@@ -37,5 +39,19 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     func sessionDidBecomeInactive(_ session: WCSession) {}
     func sessionDidDeactivate(_ session: WCSession) {
         WCSession.default.activate()
+    }
+    
+    // Tambahkan delegate method ini
+    func session(_ session: WCSession,
+                 didReceiveMessage message: [String: Any]) {
+        guard let lat = message["latitude"] as? Double,
+              let lon = message["longitude"] as? Double else { return }
+        
+        DispatchQueue.main.async {
+            self.lokasiWatch = CLLocationCoordinate2D(
+                latitude: lat,
+                longitude: lon
+            )
+        }
     }
 }

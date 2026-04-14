@@ -11,6 +11,7 @@ import MapKit
 struct PantauView: View {
     @Binding var selectedTab: Int
     @StateObject private var monitoringManager = MonitoringManager.shared
+    @StateObject private var watchManager = WatchConnectivityManager.shared
     @StateObject private var locationManager = LocationManager()
     
     // Bottom sheet state
@@ -37,15 +38,28 @@ struct PantauView: View {
             Map(position: $cameraPosition) {
                 UserAnnotation()
                 
-                if let lokasi = monitoringManager.lokasiLansia {
+                if let lokasi = watchManager.lokasiWatch {
                     Annotation("Lansia", coordinate: lokasi) {
                         ZStack {
+                            // Shadow
                             Circle()
-                                .fill(Color(hex: "#185FA5"))
-                                .frame(width: 16, height: 16)
+                                .fill(Color.black.opacity(0.15))
+                                .frame(width: 52, height: 52)
+                                .offset(y: 2)
+                            
+                            // Border putih
                             Circle()
                                 .fill(.white)
-                                .frame(width: 8, height: 8)
+                                .frame(width: 48, height: 48)
+                            
+                            // Isi — bisa foto atau inisial
+                            Circle()
+                                .fill(Color(hex: "#E6F1FB"))
+                                .frame(width: 44, height: 44)
+                            
+                            // Inisial atau ikon lansia
+                            Text("👴")
+                                .font(.system(size: 26))
                         }
                     }
                 }
@@ -209,3 +223,4 @@ struct PantauView: View {
 #Preview {
     PantauView(selectedTab: .constant(0))
 }
+

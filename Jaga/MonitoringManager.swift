@@ -56,6 +56,10 @@ enum JenisZona: String, CaseIterable {
         case .longgar: return 18
         }
     }
+    
+//    var lokasiLansia: CLLocationCoordinate2D? {
+//        return WatchConnectivityManager.shared.lokasiWatch
+//    }
 }
 
 class MonitoringManager: ObservableObject {
@@ -65,7 +69,7 @@ class MonitoringManager: ObservableObject {
     @Published var namaZona: String = ""
     @Published var jenisZona: JenisZona = .ketat
     @Published var pusatZona: CLLocationCoordinate2D?
-    @Published var lokasiLansia: CLLocationCoordinate2D?
+//    @Published var lokasiLansia: CLLocationCoordinate2D?
     @Published var isKeluarZona: Bool = false
     
     func mulaiMemantau(lokasi: CLLocationCoordinate2D) {
