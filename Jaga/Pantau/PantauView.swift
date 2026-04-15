@@ -133,7 +133,7 @@ struct PantauView: View {
             )
             .presentationDragIndicator(.hidden)
             .presentationCornerRadius(44)
-            .presentationBackgroundInteraction(.enabled(upThrough: .large))
+            .presentationBackgroundInteraction(.enabled)
             .interactiveDismissDisabled(true)
             .scrollDismissesKeyboard(.interactively)
             .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 0) }
