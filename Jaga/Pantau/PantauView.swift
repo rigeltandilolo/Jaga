@@ -32,6 +32,16 @@ struct PantauView: View {
     // Stop monitoring alert
     @State private var showStopAlert: Bool = false
     
+    @State private var showSheet: Bool = true
+    @State private var activeSheet: ActiveSheet? = .main
+    
+    enum ActiveSheet: Identifiable {
+        case main
+        
+        var id: Int { 0 }
+    }
+    
+    
     var body: some View {
         ZStack(alignment: .top) {
             // MARK: - Map
@@ -91,61 +101,81 @@ struct PantauView: View {
         }
         
         // MARK: - Bottom Sheet
-        .sheet(isPresented: .constant(true)) {
-            VStack(spacing: 0) {
-                // Drag indicator
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(Color.secondary.opacity(0.5))
-                    .frame(width: 36, height: 4)
-                    .padding(.top, 8)
-                    .padding(.bottom, 12)
-                
-                // MARK: - Tab Content
-                if selectedTab == 0 {
-                    pantauContent
-                } else {
-                    RiwayatView()
-                }
-                
-                Spacer(minLength: 0)
-                
-                // MARK: - Tab Bar
-                CustomTabBar(
-                    selectedTab: $selectedTab,
-                    onSelectPantau: {
-                        withAnimation {
-                            selectedTab = 0
-                            isFormVisible = false
-                            sheetDetent = .height(200)
-                        }
-                    },
-                    onSelectRiwayat: {
-                        withAnimation {
-                            selectedTab = 1
-                            sheetDetent = .height(340)
-                        }
-                    }
-                )
-            }
-            .presentationDetents(
-                selectedTab == 1 ? [.height(340), .large] : (isFormVisible ? [.height(320)] : [.height(200)]),
-                selection: $sheetDetent
-            )
-            .presentationDragIndicator(.hidden)
-            .presentationCornerRadius(44)
-            .presentationBackgroundInteraction(.enabled)
-            .interactiveDismissDisabled(true)
-            .scrollDismissesKeyboard(.interactively)
-            .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 0) }
+        .sheet(item: $activeSheet) { _ in
+            sheetContent
         }
         .alert("Berhenti Memantau?", isPresented: $showStopAlert) {
             Button("Tidak", role: .cancel) {}
             Button("Ya", role: .destructive) {
                 monitoringManager.berhentiMemantau()
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    monitoringManager.pusatZona = nil
+                }
             }
         } message: {
             Text("Pemantauan akan dihentikan.")
         }
+        
+        .onReceive(watchManager.$lokasiWatch) { lokasi in
+            guard let lokasi = lokasi else { return }
+            monitoringManager.updateStatus(lokasiLansia: lokasi)
+            monitoringManager.lastUpdate = Date()
+        }
+        
+        .onReceive(watchManager.$watchBattery) { battery in
+            monitoringManager.watchBatteryLevel = battery
+        }
+
+        .onReceive(watchManager.$isWatchConnected) { connected in
+            monitoringManager.isWatchConnected = connected
+        }
+    }
+    
+    private var sheetContent: some View {
+        VStack(spacing: 0) {
+            
+            // Drag indicator
+            RoundedRectangle(cornerRadius: 3)
+                .fill(Color.secondary.opacity(0.5))
+                .frame(width: 36, height: 4)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+            
+            // MARK: - Tab Content
+            if selectedTab == 0 {
+                pantauContent
+            } else {
+                RiwayatView()
+            }
+            
+            Spacer(minLength: 0)
+            
+            // MARK: - Tab Bar
+            CustomTabBar(
+                selectedTab: $selectedTab,
+                onSelectPantau: {
+                    withAnimation {
+                        selectedTab = 0
+                        isFormVisible = false
+                        sheetDetent = .height(200)
+                    }
+                },
+                onSelectRiwayat: {
+                    withAnimation {
+                        selectedTab = 1
+                        sheetDetent = .height(340)
+                    }
+                }
+            )
+        }
+        .presentationDetents(detentsForCurrentState)
+        .presentationDragIndicator(.hidden)
+        .presentationCornerRadius(44)
+        .presentationBackgroundInteraction(.enabled)
+        .interactiveDismissDisabled(true)
+        .scrollDismissesKeyboard(.interactively)
+        .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 0) }
     }
     
     // MARK: - Pantau Content
@@ -161,7 +191,9 @@ struct PantauView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 16)
             
-            if isFormVisible {
+            if monitoringManager.isMemantau {
+                monitoringStatusView
+            } else if isFormVisible {
                 FormZonaView(
                     namaZona: $namaZona,
                     selectedZona: $selectedZona,
@@ -216,6 +248,143 @@ struct PantauView: View {
                 sheetDetent = .height(200)
             }
         }
+    }
+    
+    
+    // MARK: tampilan pas lagi monitoring
+    private var monitoringStatusView: some View {
+        VStack(spacing: 16) {
+            
+            // MARK: - MAIN CARD
+            VStack(spacing: 16) {
+                
+                // HEADER (icon + nama + update + battery)
+                HStack(alignment: .top, spacing: 12) {
+                    
+                    // ICON LOKASI
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: "#2F80ED").opacity(0.15))
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: "location.fill")
+                            .foregroundColor(Color(hex: "#2F80ED"))
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        
+                        Text(monitoringManager.namaZona)
+                            .font(.headline)
+                        
+                        Text("Diperbarui \(timeAgo)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    // BATTERY
+                    batteryView
+                }
+                
+                // MARK: - SUB CARDS (2 kotak sama besar)
+                HStack(spacing: 12) {
+                    
+                    // STATUS ZONA
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Status")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(monitoringManager.isDalamZona ? .green : .red)
+                                .frame(width: 8, height: 8)
+                            
+                            Text(
+                                monitoringManager.isDalamZona
+                                ? "Berada di dalam zona aman"
+                                : "Keluar dari zona"
+                            )
+                            .font(.subheadline)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 70, alignment: .leading)
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(16)
+                    
+                    // JENIS ZONA
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Jenis Zona")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text(monitoringManager.jenisZona.label)
+                            .font(.subheadline)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 70, alignment: .leading)
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(16)
+                }
+            }
+            .padding()
+            .background(.ultraThickMaterial)
+            .cornerRadius(24)
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    //UKURAN SHEET TIAP FITUR
+    private var detentsForCurrentState: Set<PresentationDetent> {
+        if selectedTab == 1 {
+            // RIWAYAT → tetap flexible
+            return [.height(340), .large]
+            
+        } else if monitoringManager.isMemantau {
+            // 🔥 MONITORING → FIX (sesuai desain kamu)
+            return [.height(380)]
+            
+        } else if isFormVisible {
+            // FORM INPUT
+            return [.height(320)]
+            
+        } else {
+            // DEFAULT (button only)
+            return [.height(200)]
+        }
+    }
+    
+    // MARK: TAMPILAN BATTRENYA
+    private var batteryView: some View {
+        HStack(spacing: 4) {
+            Image(systemName: batteryIconName)
+            Text("\(Int(monitoringManager.watchBatteryLevel * 100))%")
+                .font(.caption)
+        }
+        .foregroundColor(batteryColor)
+    }
+    
+    private var batteryIconName: String {
+        let level = monitoringManager.watchBatteryLevel
+        
+        switch level {
+        case 0.75...: return "battery.100"
+        case 0.5..<0.75: return "battery.75"
+        case 0.25..<0.5: return "battery.50"
+        case 0.1..<0.25: return "battery.25"
+        default: return "battery.0"
+        }
+    }
+
+    private var batteryColor: Color {
+        monitoringManager.watchBatteryLevel < 0.2 ? .red : .primary
+    }
+    
+    private var timeAgo: String {
+        let seconds = Int(Date().timeIntervalSince(monitoringManager.lastUpdate))
+        return "\(seconds) detik lalu"
     }
 }
 

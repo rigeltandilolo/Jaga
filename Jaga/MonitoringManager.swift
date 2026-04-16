@@ -72,6 +72,14 @@ class MonitoringManager: ObservableObject {
 //    @Published var lokasiLansia: CLLocationCoordinate2D?
     @Published var isKeluarZona: Bool = false
     
+    @Published var jarakDariPusat: Double = 0
+    @Published var isDalamZona: Bool = true
+
+    @Published var watchBatteryLevel: Float = 0
+    @Published var isWatchConnected: Bool = false
+    
+    @Published var lastUpdate: Date = Date()
+    
     func mulaiMemantau(lokasi: CLLocationCoordinate2D) {
         pusatZona = lokasi
         isMemantau = true
@@ -79,7 +87,26 @@ class MonitoringManager: ObservableObject {
     
     func berhentiMemantau() {
         isMemantau = false
-        pusatZona = nil
+//        pusatZona = nil
         isKeluarZona = false
+    }
+    
+    func updateStatus(lokasiLansia: CLLocationCoordinate2D) {
+        guard let pusat = pusatZona else { return }
+        
+        let center = CLLocation(latitude: pusat.latitude, longitude: pusat.longitude)
+        let lansia = CLLocation(latitude: lokasiLansia.latitude, longitude: lokasiLansia.longitude)
+        
+        let distance = center.distance(from: lansia)
+        
+        jarakDariPusat = distance
+        
+        if distance > jenisZona.radius {
+            isKeluarZona = true
+            isDalamZona = false
+        } else {
+            isKeluarZona = false
+            isDalamZona = true
+        }
     }
 }

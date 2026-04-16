@@ -14,6 +14,7 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     
     @Published var isWatchConnected: Bool = false
     @Published var lokasiWatch: CLLocationCoordinate2D?
+    @Published var watchBattery: Float = 0
     
     override init() {
         super.init()
@@ -46,6 +47,12 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
                  didReceiveMessage message: [String: Any]) {
         guard let lat = message["latitude"] as? Double,
               let lon = message["longitude"] as? Double else { return }
+        
+        if let battery = message["battery"] as? Float {
+            DispatchQueue.main.async {
+                self.watchBattery = battery
+            }
+        }
         
         DispatchQueue.main.async {
             self.lokasiWatch = CLLocationCoordinate2D(
