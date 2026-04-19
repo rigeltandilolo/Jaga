@@ -32,12 +32,8 @@ struct PantauView: View {
     // Stop monitoring alert
     @State private var showStopAlert: Bool = false
     
-    @State private var showSheet: Bool = true
-    @State private var activeSheet: ActiveSheet? = .main
-    
     enum ActiveSheet: Identifiable {
         case main
-        
         var id: Int { 0 }
     }
     
@@ -101,20 +97,8 @@ struct PantauView: View {
         }
         
         // MARK: - Bottom Sheet
-        .sheet(item: $activeSheet) { _ in
+        .sheet(isPresented: .constant(true)) {
             sheetContent
-        }
-        .alert("Berhenti Memantau?", isPresented: $showStopAlert) {
-            Button("Tidak", role: .cancel) {}
-            Button("Ya", role: .destructive) {
-                monitoringManager.berhentiMemantau()
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    monitoringManager.pusatZona = nil
-                }
-            }
-        } message: {
-            Text("Pemantauan akan dihentikan.")
         }
         
         .onReceive(watchManager.$lokasiWatch) { lokasi in
@@ -176,6 +160,17 @@ struct PantauView: View {
         .interactiveDismissDisabled(true)
         .scrollDismissesKeyboard(.interactively)
         .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 0) }
+        .alert("Berhenti Memantau?", isPresented: $showStopAlert) {
+            Button("Tidak", role: .cancel) {}
+            Button("Ya", role: .destructive) {
+                monitoringManager.berhentiMemantau()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    monitoringManager.pusatZona = nil
+                }
+            }
+        } message: {
+            Text("Pemantauan akan dihentikan.")
+        }
     }
     
     // MARK: - Pantau Content
