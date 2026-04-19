@@ -8,14 +8,18 @@
 import WatchConnectivity
 import Combine
 import CoreLocation
-
+ 
 class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     static let shared = WatchConnectivityManager()
-    
-    @Published var isWatchConnected: Bool = false
+ 
+    @Published var isWatchConnected: Bool          = false
     @Published var lokasiWatch: CLLocationCoordinate2D?
-    @Published var watchBattery: Float = 0
-    
+    @Published var watchBattery: Float             = 0
+ 
+    // Timer untuk deteksi timeout (Watch tidak kirim data dalam X detik)
+    private var timeoutTimer: Timer?
+    private let timeoutInterval: TimeInterval = 30 // 30 detik tanpa data = disconnect
+ 
     override init() {
         super.init()
         if WCSession.isSupported() {
@@ -23,55 +27,87 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
             WCSession.default.activate()
         }
     }
-    
+ 
+    // MARK: - Public: cek koneksi manual (dipakai OnboardingView)
     func checkWatchConnection() {
-        isWatchConnected = WCSession.default.isWatchAppInstalled
+        let connected = WCSession.default.activationState == .activated
+            && WCSession.default.isWatchAppInstalled
+        updateConnectionStatus(connected)
     }
-    
+ 
     // MARK: - WCSessionDelegate
+ 
     func session(_ session: WCSession,
                  activationDidCompleteWith state: WCSessionActivationState,
                  error: Error?) {
         DispatchQueue.main.async {
-            self.isWatchConnected = session.isWatchAppInstalled
+            let connected = session.activationState == .activated && session.isWatchAppInstalled
+            self.updateConnectionStatus(connected)
         }
     }
-    
+ 
+    // ✅ Dipanggil iOS otomatis setiap kali reachability Watch berubah
+    func sessionReachabilityDidChange(_ session: WCSession) {
+        DispatchQueue.main.async {
+            let connected = session.isReachable
+            self.updateConnectionStatus(connected)
+        }
+    }
+ 
     func sessionDidBecomeInactive(_ session: WCSession) {}
+ 
     func sessionDidDeactivate(_ session: WCSession) {
         WCSession.default.activate()
     }
-    
-    // Tambahkan delegate method ini
+ 
+    // MARK: - Terima lokasi dari Watch (real-time)
     func session(_ session: WCSession,
                  didReceiveMessage message: [String: Any]) {
-        guard let lat = message["latitude"] as? Double,
+        guard let lat = message["latitude"]  as? Double,
               let lon = message["longitude"] as? Double else { return }
-        
+ 
         if let battery = message["battery"] as? Float {
-            DispatchQueue.main.async {
-                self.watchBattery = battery
-            }
+            DispatchQueue.main.async { self.watchBattery = battery }
         }
-        
+ 
         DispatchQueue.main.async {
-            self.lokasiWatch = CLLocationCoordinate2D(
-                latitude: lat,
-                longitude: lon
-            )
+            self.lokasiWatch = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            self.updateConnectionStatus(true)
+            self.resetTimeoutTimer()
         }
     }
-    
+ 
+    // MARK: - Terima lokasi dari Watch (background/context)
     func session(_ session: WCSession,
                  didReceiveApplicationContext applicationContext: [String: Any]) {
-        guard let lat = applicationContext["latitude"] as? Double,
+        guard let lat = applicationContext["latitude"]  as? Double,
               let lon = applicationContext["longitude"] as? Double else { return }
-        
+ 
         DispatchQueue.main.async {
-            self.lokasiWatch = CLLocationCoordinate2D(
-                latitude: lat,
-                longitude: lon
-            )
+            self.lokasiWatch = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            self.updateConnectionStatus(true)
+            self.resetTimeoutTimer()
         }
+    }
+ 
+    // MARK: - Timer Timeout
+    // Jika 30 detik tidak ada data dari Watch → anggap disconnect
+    private func resetTimeoutTimer() {
+        timeoutTimer?.invalidate()
+        timeoutTimer = Timer.scheduledTimer(withTimeInterval: timeoutInterval, repeats: false) { [weak self] _ in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                if !WCSession.default.isReachable {
+                    self.updateConnectionStatus(false)
+                }
+            }
+        }
+    }
+ 
+    // MARK: - Helper: update status + propagate ke MonitoringManager
+    private func updateConnectionStatus(_ connected: Bool) {
+        guard isWatchConnected != connected else { return } // skip jika tidak berubah
+        isWatchConnected = connected
+        MonitoringManager.shared.updateWatchConnection(connected: connected)
     }
 }

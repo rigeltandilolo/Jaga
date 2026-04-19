@@ -101,18 +101,21 @@ struct PantauView: View {
             sheetContent
         }
         
+        // ✅ Lokasi Watch masuk → update status zona (sudah ada)
         .onReceive(watchManager.$lokasiWatch) { lokasi in
             guard let lokasi = lokasi else { return }
             monitoringManager.updateStatus(lokasiLansia: lokasi)
             monitoringManager.lastUpdate = Date()
         }
-        
+ 
+        // ✅ Battery Watch → sinkron ke MonitoringManager
         .onReceive(watchManager.$watchBattery) { battery in
             monitoringManager.watchBatteryLevel = battery
         }
-
+ 
+        // ✅ KONEKSI WATCH → propagate + trigger notif otomatis via MonitoringManager
         .onReceive(watchManager.$isWatchConnected) { connected in
-            monitoringManager.isWatchConnected = connected
+            monitoringManager.updateWatchConnection(connected: connected)
         }
     }
     

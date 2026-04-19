@@ -11,7 +11,12 @@ import SwiftUI
 struct JagaApp: App {
     @State private var showSplash = true
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    
+ 
+    init() {
+        // ✅ Minta izin push notification saat app pertama kali dibuka
+        NotificationManager.shared.mintaIzinNotifikasi()
+    }
+ 
     var body: some Scene {
         WindowGroup {
             if showSplash {
