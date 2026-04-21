@@ -18,7 +18,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     // MARK: - Cooldown agar notif tidak spam
     private var lastKeluarZonaNotif: Date?
     private var lastWatchDisconnectNotif: Date?
-    private let cooldownDetik: TimeInterval = 60 // minimal 60 detik antar notif sejenis
+    private let cooldownDetik: TimeInterval = 30 // minimal detik antar notif sejenis
  
     // MARK: - Init
     private override init() {
