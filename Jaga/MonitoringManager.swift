@@ -77,56 +77,89 @@ class MonitoringManager: ObservableObject {
     // Lacak state sebelumnya untuk trigger notif hanya sekali per event
     private var wasKeluarZona: Bool    = false
     private var wasWatchConnected: Bool = true
+    
+    private var lokasiWatchTerakhir: CLLocationCoordinate2D?
  
     // MARK: - Mulai Memantau
-    func mulaiMemantau(lokasi: CLLocationCoordinate2D) {
-        pusatZona      = lokasi
-        isMemantau     = true
-        wasKeluarZona  = false
-        wasWatchConnected = true
-        NotificationManager.shared.resetCooldown()
-    }
- 
-    // MARK: - Berhenti Memantau
-    func berhentiMemantau() {
-        isMemantau    = false
-        isKeluarZona  = false
-        isDalamZona   = true
-        wasKeluarZona = false
-        NotificationManager.shared.resetCooldown()
-    }
- 
-    // MARK: - Update posisi lansia dari Watch
-    func updateStatus(lokasiLansia: CLLocationCoordinate2D) {
-        guard let pusat = pusatZona, isMemantau else { return }
- 
-        let center = CLLocation(latitude: pusat.latitude, longitude: pusat.longitude)
-        let lansia = CLLocation(latitude: lokasiLansia.latitude, longitude: lokasiLansia.longitude)
-        let distance = center.distance(from: lansia)
- 
-        jarakDariPusat = distance
- 
-        let keluarSekarang = distance > jenisZona.radius
-        isKeluarZona = keluarSekarang
-        isDalamZona  = !keluarSekarang
- 
-        // ✅ Kirim notif KELUAR ZONA hanya saat baru saja keluar (bukan terus-menerus)
-        if keluarSekarang && !wasKeluarZona {
-            let nama = namaZona.isEmpty ? "Lansia" : namaZona
-            NotificationManager.shared.kirimNotifKeluarZona(namaZona: nama)
-        }
-        wasKeluarZona = keluarSekarang
-    }
- 
-    // MARK: - Update status koneksi Watch
-    func updateWatchConnection(connected: Bool) {
-        isWatchConnected = connected
- 
-        // ✅ Kirim notif WATCH DISCONNECT hanya saat baru saja terputus
-        if !connected && wasWatchConnected && isMemantau {
-            let nama = namaZona.isEmpty ? "Oma Uci" : namaZona
-            NotificationManager.shared.kirimNotifWatchDisconnect(namaLansia: nama)
-        }
-        wasWatchConnected = connected
-    }
-}
+      func mulaiMemantau(lokasi: CLLocationCoordinate2D, lokasiWatch: CLLocationCoordinate2D?) {
+          pusatZona          = lokasi
+          isMemantau         = true
+          wasKeluarZona      = false
+          wasWatchConnected  = true
+          lokasiWatchTerakhir = lokasiWatch
+   
+          NotificationManager.shared.resetCooldown()
+   
+          // Catat ke riwayat
+          RiwayatManager.shared.mulaiSesi(
+              namaZona: namaZona,
+              jenisZonaLabel: jenisZona.label,
+              pusatKoordinat: lokasi,
+              zonaRadius: jenisZona.radius,
+              lokasiAwal: lokasiWatch ?? lokasi
+          )
+      }
+   
+      // MARK: - Berhenti Memantau
+      func berhentiMemantau() {
+          isMemantau   = false
+          isKeluarZona = false
+          isDalamZona  = true
+          wasKeluarZona = false
+   
+          // Selesaikan sesi riwayat
+          RiwayatManager.shared.selesaiSesi(lokasiAkhir: lokasiWatchTerakhir)
+          NotificationManager.shared.resetCooldown()
+      }
+   
+      // MARK: - Update posisi lansia dari Watch
+      func updateStatus(lokasiLansia: CLLocationCoordinate2D) {
+          guard let pusat = pusatZona, isMemantau else { return }
+   
+          lokasiWatchTerakhir = lokasiLansia
+   
+          let center   = CLLocation(latitude: pusat.latitude, longitude: pusat.longitude)
+          let lansia   = CLLocation(latitude: lokasiLansia.latitude, longitude: lokasiLansia.longitude)
+          let distance = center.distance(from: lansia)
+   
+          jarakDariPusat = distance
+          let keluarSekarang = distance > jenisZona.radius
+          isKeluarZona = keluarSekarang
+          isDalamZona  = !keluarSekarang
+   
+          // Baru keluar zona → notif + catat riwayat
+          if keluarSekarang && !wasKeluarZona {
+              let nama = namaZona.isEmpty ? "Lansia" : namaZona
+              NotificationManager.shared.kirimNotifKeluarZona(namaZona: nama)
+              RiwayatManager.shared.catatKeluarZona(koordinat: lokasiLansia)
+          }
+   
+          // Baru kembali ke zona
+          if !keluarSekarang && wasKeluarZona {
+              RiwayatManager.shared.catatKembaliKeZona(koordinat: lokasiLansia)
+          }
+   
+          wasKeluarZona = keluarSekarang
+      }
+   
+      // MARK: - Update status koneksi Watch
+      func updateWatchConnection(connected: Bool) {
+          isWatchConnected = connected
+   
+          // Baru disconnect
+          if !connected && wasWatchConnected && isMemantau {
+              let nama = namaZona.isEmpty ? "Lansia" : namaZona
+              NotificationManager.shared.kirimNotifWatchDisconnect(namaLansia: nama)
+              RiwayatManager.shared.catatDisconnect(koordinatTerakhir: lokasiWatchTerakhir)
+          }
+   
+          // Baru reconnect
+          if connected && !wasWatchConnected && isMemantau {
+              if let lokasi = lokasiWatchTerakhir {
+                  RiwayatManager.shared.catatReconnect(koordinat: lokasi)
+              }
+          }
+   
+          wasWatchConnected = connected
+      }
+  }

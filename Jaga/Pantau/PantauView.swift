@@ -238,7 +238,7 @@ struct PantauView: View {
             guard let lokasi = locationManager.lastLocation?.coordinate else { return }
             monitoringManager.namaZona = namaZona
             monitoringManager.jenisZona = selectedZona
-            monitoringManager.mulaiMemantau(lokasi: lokasi)
+            monitoringManager.mulaiMemantau(lokasi: lokasi, lokasiWatch: watchManager.lokasiWatch)
             withAnimation {
                 isFormVisible = false
             }
