@@ -776,7 +776,7 @@
 				DEVELOPMENT_TEAM = QXK7R2TY4W;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "";
+				INFOPLIST_FILE = "Jaga-Watch-App-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Jaga Watch App";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Jaga membutuhkan lokasi untuk memantau posisi lansia secara langsung.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
@@ -812,7 +812,7 @@
 				DEVELOPMENT_TEAM = QXK7R2TY4W;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "";
+				INFOPLIST_FILE = "Jaga-Watch-App-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Jaga Watch App";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Jaga membutuhkan lokasi untuk memantau posisi lansia secara langsung.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";

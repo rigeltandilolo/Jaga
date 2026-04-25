@@ -9,9 +9,15 @@ import SwiftUI
 
 @main
 struct Jaga_Watch_App_Watch_AppApp: App {
+    // Inisialisasi di sini agar tidak mati saat layar off
+    @StateObject private var locationManager = WatchLocationManager()
+    @StateObject private var sessionManager = WatchSessionManager.shared
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(locationManager)
+                .environmentObject(sessionManager)
         }
     }
 }

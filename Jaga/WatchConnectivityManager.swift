@@ -18,7 +18,8 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
  
     // Timer untuk deteksi timeout (Watch tidak kirim data dalam X detik)
     private var timeoutTimer: Timer?
-    private let timeoutInterval: TimeInterval = 30 // 30 detik tanpa data = disconnect
+    private var lastReceivedDate: Date?
+    private let timeoutInterval: TimeInterval = 90 // 90 detik tanpa data = disconnect
  
     override init() {
         super.init()
@@ -77,16 +78,21 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
  
-    // MARK: - Terima lokasi dari Watch (background/context)
+    // MARK: - Terima lokasi dari Watch (background/context, layar mati)
     func session(_ session: WCSession,
                  didReceiveApplicationContext applicationContext: [String: Any]) {
-        guard let lat = applicationContext["latitude"]  as? Double,
-              let lon = applicationContext["longitude"] as? Double else { return }
- 
+
+        // Update lokasi hanya kalau ada koordinat (bukan pure heartbeat)
+        if let lat = applicationContext["latitude"] as? Double,
+           let lon = applicationContext["longitude"] as? Double {
+            DispatchQueue.main.async {
+                self.lokasiWatch = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            }
+        }
+
+        // Heartbeat atau lokasi = Watch masih terhubung
         DispatchQueue.main.async {
-            self.lokasiWatch = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-            self.updateConnectionStatus(true)
-            self.resetTimeoutTimer()
+            self.handleDataReceived()
         }
     }
  
@@ -102,6 +108,13 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
                 }
             }
         }
+    }
+    
+    // MARK: - Dipanggil setiap kali data lokasi diterima (dari jalur manapun)
+    private func handleDataReceived() {
+        lastReceivedDate = Date()
+        updateConnectionStatus(true)
+        resetTimeoutTimer()
     }
  
     // MARK: - Helper: update status + propagate ke MonitoringManager

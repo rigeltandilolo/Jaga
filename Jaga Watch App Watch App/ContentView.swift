@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var locationManager = WatchLocationManager()
-    @StateObject private var sessionManager = WatchSessionManager.shared
+    @EnvironmentObject var locationManager : WatchLocationManager
+    @EnvironmentObject var sessionManager : WatchSessionManager
     
     var body: some View {
         ZStack {

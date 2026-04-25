@@ -7,11 +7,14 @@
 
 import CoreLocation
 import WatchConnectivity
+import WatchKit
 import Combine
 
-class WatchLocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+class WatchLocationManager: NSObject, ObservableObject, CLLocationManagerDelegate, WKExtendedRuntimeSessionDelegate {
     private let manager = CLLocationManager()
     private let sessionManager = WatchSessionManager.shared
+    private var extendedSession: WKExtendedRuntimeSession?
+    private var heartbeatTimer: Timer?
     
     @Published var currentLocation: CLLocation?
     
@@ -22,6 +25,68 @@ class WatchLocationManager: NSObject, ObservableObject, CLLocationManagerDelegat
         manager.distanceFilter = 3 // update setiap bergerak 5 meter
         manager.requestWhenInUseAuthorization()
         manager.startUpdatingLocation()
+        
+        startExtendedRuntimeSession()
+        startHeartbeat()
+    }
+    
+    // MARK: - Heartbeat (kirim sinyal tiap 30 detik meski tidak bergerak)
+    private func startHeartbeat() {
+        heartbeatTimer?.invalidate()
+        heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+            self?.sendHeartbeat()
+        }
+    }
+
+    private func sendHeartbeat() {
+        guard WCSession.isSupported() else { return }
+
+        var payload: [String: Any] = ["heartbeat": true]
+
+        // Sertakan lokasi terakhir jika ada (supaya iPhone tetap punya lokasi terbaru)
+        if let loc = currentLocation {
+            payload["latitude"]  = loc.coordinate.latitude
+            payload["longitude"] = loc.coordinate.longitude
+        }
+
+        payload["timestamp"] = Date().timeIntervalSince1970
+
+        do {
+            try WCSession.default.updateApplicationContext(payload)
+        } catch {
+            print("Heartbeat error: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - Extended Runtime Session
+    private func startExtendedRuntimeSession() {
+        let session = WKExtendedRuntimeSession()
+        session.delegate = self
+        session.start() // default akan menggunakan mode Self Care
+        extendedSession = session
+    }
+
+    // Delegate: session berhasil dimulai
+    func extendedRuntimeSessionDidStart(_ extendedRuntimeSession: WKExtendedRuntimeSession) {
+        print("Extended runtime session aktif")
+    }
+
+    // Delegate: session akan berakhir (kamu punya waktu singkat untuk cleanup/restart)
+    func extendedRuntimeSessionWillExpire(_ extendedRuntimeSession: WKExtendedRuntimeSession) {
+        print("Session akan expired, coba restart...")
+        // Restart session supaya tetap aktif
+        startExtendedRuntimeSession()
+    }
+
+    // Delegate: session berakhir
+    func extendedRuntimeSession(_ extendedRuntimeSession: WKExtendedRuntimeSession,
+                                 didInvalidateWith reason: WKExtendedRuntimeSessionInvalidationReason,
+                                 error: Error?) {
+        print("Session invalid: \(reason.rawValue), error: \(error?.localizedDescription ?? "-")")
+        // Coba restart setelah beberapa detik
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            self.startExtendedRuntimeSession()
+        }
     }
     
     func locationManager(_ manager: CLLocationManager,
