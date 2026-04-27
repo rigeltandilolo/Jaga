@@ -12,9 +12,14 @@ struct ContentView: View {
     @EnvironmentObject var locationManager: WatchLocationManager
     @EnvironmentObject var sessionManager: WatchSessionManager
 
+    var dalamZona: Bool { sessionManager.statusZona == "aman" }
+
     var body: some View {
         ZStack {
-            Color(red: 0.02, green: 0.17, blue: 0.38)
+            // Warna background berubah sesuai status
+            (dalamZona
+                ? Color(red: 0.02, green: 0.17, blue: 0.38)
+                : Color(red: 0.4, green: 0.0, blue: 0.0))
                 .ignoresSafeArea()
 
             VStack(spacing: 8) {
@@ -25,27 +30,31 @@ struct ContentView: View {
 
                 Spacer()
 
-                Image(systemName: "checkmark.shield.fill")
+                Image(systemName: dalamZona ? "checkmark.shield.fill" : "exclamationmark.triangle.fill")
                     .font(.system(size: 36))
-                    .foregroundColor(Color(red: 0.11, green: 0.62, blue: 0.46))
+                    .foregroundColor(dalamZona
+                        ? Color(red: 0.11, green: 0.62, blue: 0.46)
+                        : .yellow)
 
-                Text("Aktif")
+                Text(dalamZona ? "Aktif" : "PERINGATAN")
                     .font(.headline)
                     .foregroundColor(.white)
 
-                Text("Anda terpantau\ndengan aman")
+                Text(dalamZona
+                    ? "Anda terpantau\ndengan aman"
+                    : "Anda berada\ndi luar zona aman!")
                     .font(.caption)
-                    .foregroundColor(.gray)
+                    .foregroundColor(dalamZona ? .gray : .white)
                     .multilineTextAlignment(.center)
 
                 Spacer()
             }
             .padding()
         }
-        // Sembunyikan overlay sistem agar watch tidak kembali ke watch face
         .persistentSystemOverlays(.hidden)
     }
 }
+
 #Preview {
     ContentView()
 }

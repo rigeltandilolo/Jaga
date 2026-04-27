@@ -14,6 +14,7 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
     @Published var currentLatitude: Double = 0.0
     @Published var currentLongitude: Double = 0.0
     @Published var isSessionActive: Bool = false
+    @Published var statusZona: String = "aman" // "aman" atau "bahaya"
     
     override init() {
         super.init()
@@ -29,6 +30,16 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
                  error: Error?) {
         DispatchQueue.main.async {
             self.isSessionActive = state == .activated
+        }
+    }
+    
+    // Tambahkan delegate ini
+    func session(_ session: WCSession,
+                 didReceiveApplicationContext applicationContext: [String: Any]) {
+        if let status = applicationContext["statusZona"] as? String {
+            DispatchQueue.main.async {
+                self.statusZona = status
+            }
         }
     }
 }

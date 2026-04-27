@@ -106,6 +106,9 @@ class MonitoringManager: ObservableObject {
           isKeluarZona = false
           isDalamZona  = true
           wasKeluarZona = false
+          
+          // Reset tampilan Watch ke kondisi aman
+          WatchConnectivityManager.shared.kirimStatusZona(dalamZona: true)
    
           // Selesaikan sesi riwayat
           RiwayatManager.shared.selesaiSesi(lokasiAkhir: lokasiWatchTerakhir)
@@ -140,6 +143,9 @@ class MonitoringManager: ObservableObject {
           }
    
           wasKeluarZona = keluarSekarang
+          
+          // Setelah baris isKeluarZona = keluarSekarang
+          WatchConnectivityManager.shared.kirimStatusZona(dalamZona: !keluarSekarang)
       }
    
       // MARK: - Update status koneksi Watch

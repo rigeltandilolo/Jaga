@@ -94,6 +94,22 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
             self.handleDataReceived()
         }
     }
+    
+    //kirim status zona ke apple watch
+    func kirimStatusZona(dalamZona: Bool) {
+        guard WCSession.default.activationState == .activated else { return }
+        
+        let payload: [String: Any] = [
+            "statusZona": dalamZona ? "aman" : "bahaya"
+        ]
+        
+        // Pakai updateApplicationContext agar Watch terima meski tidak reachable
+        do {
+            try WCSession.default.updateApplicationContext(payload)
+        } catch {
+            print("Gagal kirim status zona: \(error.localizedDescription)")
+        }
+    }
  
     // MARK: - Timer Timeout
     // Jika 30 detik tidak ada data dari Watch → anggap disconnect
