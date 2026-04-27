@@ -14,7 +14,9 @@ class WatchLocationManager: NSObject, ObservableObject, CLLocationManagerDelegat
     private let manager = CLLocationManager()
     private let sessionManager = WatchSessionManager.shared
     private var extendedSession: WKExtendedRuntimeSession?
-    private var heartbeatTimer: Timer?
+    
+    // Ganti Timer → DispatchSourceTimer (lebih reliable di background)
+       private var heartbeatTimer: DispatchSourceTimer?
     
     @Published var currentLocation: CLLocation?
     
@@ -32,10 +34,15 @@ class WatchLocationManager: NSObject, ObservableObject, CLLocationManagerDelegat
     
     // MARK: - Heartbeat (kirim sinyal tiap 30 detik meski tidak bergerak)
     private func startHeartbeat() {
-        heartbeatTimer?.invalidate()
-        heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+        heartbeatTimer?.cancel()
+
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .background))
+        timer.schedule(deadline: .now() + 10, repeating: 10)
+        timer.setEventHandler { [weak self] in
             self?.sendHeartbeat()
         }
+        timer.resume()
+        heartbeatTimer = timer
     }
 
     private func sendHeartbeat() {

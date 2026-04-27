@@ -49,10 +49,10 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
  
     // ✅ Dipanggil iOS otomatis setiap kali reachability Watch berubah
     func sessionReachabilityDidChange(_ session: WCSession) {
-        DispatchQueue.main.async {
-            let connected = session.isReachable
-            self.updateConnectionStatus(connected)
-        }
+//        DispatchQueue.main.async {
+//            let connected = session.isReachable
+//            self.updateConnectionStatus(connected)
+//        }
     }
  
     func sessionDidBecomeInactive(_ session: WCSession) {}
@@ -73,8 +73,7 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
  
         DispatchQueue.main.async {
             self.lokasiWatch = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-            self.updateConnectionStatus(true)
-            self.resetTimeoutTimer()
+            self.handleDataReceived()
         }
     }
  
@@ -103,9 +102,7 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
         timeoutTimer = Timer.scheduledTimer(withTimeInterval: timeoutInterval, repeats: false) { [weak self] _ in
             guard let self = self else { return }
             DispatchQueue.main.async {
-                if !WCSession.default.isReachable {
                     self.updateConnectionStatus(false)
-                }
             }
         }
     }
