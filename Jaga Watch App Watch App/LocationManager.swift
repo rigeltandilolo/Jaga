@@ -66,6 +66,7 @@ class WatchLocationManager: NSObject, ObservableObject, CLLocationManagerDelegat
     }
     
     // MARK: - Extended Runtime Session
+    //jaga app watch tetap berjalan di background
     private func startExtendedRuntimeSession() {
         let session = WKExtendedRuntimeSession()
         session.delegate = self

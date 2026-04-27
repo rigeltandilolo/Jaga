@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import WatchKit
 
 @main
 struct Jaga_Watch_App_Watch_AppApp: App {
