@@ -16,16 +16,16 @@ struct StatusPillView: View {
                 .fill(isMemantau
                       ? Color(hex: "#1D9E75")
                       : Color(hex: "#888780"))
-                .frame(width: 8, height: 8)
+                .frame(width: 10, height: 10)
             Text(isMemantau
                  ? "Sedang memantau"
                  : "Sedang tidak memantau")
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.body)
+                .fontWeight(.semibold)
                 .foregroundColor(.white)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
         .background(.ultraThinMaterial)
         .clipShape(Capsule())
     }

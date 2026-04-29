@@ -88,12 +88,28 @@ struct PantauView: View {
             .mapStyle(.hybrid)
             .mapControls {
                 MapUserLocationButton()
+                    .mapControlVisibility(.visible)
                 MapCompass()
+                    .mapControlVisibility(.visible)
+            }
+            // Turunkan controls agar tidak tertutup status pill
+            .safeAreaPadding(.top, 160)
+            .ignoresSafeArea()
+            // Auto zoom in ke posisi user saat pertama buka
+            .onAppear {
+                withAnimation(.easeInOut(duration: 1.0)) {
+                    cameraPosition = .region(MKCoordinateRegion(
+                        center: LocationManager().lastLocation?.coordinate
+                            ?? CLLocationCoordinate2D(latitude: -5.147665, longitude: 119.432732),
+                        span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002)
+                    ))
+                }
             }
             .ignoresSafeArea()
+            
             // MARK: - Status Pill
             StatusPillView(isMemantau: monitoringManager.isMemantau)
-                .padding(.top, 60)
+                .padding(.top, 12)
         }
         
         // MARK: - Bottom Sheet
