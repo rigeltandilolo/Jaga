@@ -16,7 +16,7 @@ struct StatusPillView: View {
                 .fill(isMemantau
                       ? Color(hex: "#1D9E75")
                       : Color(hex: "#888780"))
-                .frame(width: 10, height: 10)
+                .frame(width: 16, height: 16)
             Text(isMemantau
                  ? "Sedang memantau"
                  : "Sedang tidak memantau")
