@@ -10,6 +10,7 @@ import MapKit
 
 struct PantauView: View {
     @Binding var selectedTab: Int
+    
     @StateObject private var monitoringManager = MonitoringManager.shared
     @ObservedObject private var watchManager = WatchConnectivityManager.shared
     @StateObject private var locationManager = LocationManager()
@@ -31,6 +32,11 @@ struct PantauView: View {
     
     // Stop monitoring alert
     @State private var showStopAlert: Bool = false
+    
+    // Tambahkan state ini di bagian atas PantauView
+    @State private var sudahZoomAwal: Bool = false
+    
+    @State private var showValidasiError: Bool = false
     
     enum ActiveSheet: Identifiable {
         case main
@@ -95,12 +101,14 @@ struct PantauView: View {
             // Turunkan controls agar tidak tertutup status pill
             .safeAreaPadding(.top, 160)
             .ignoresSafeArea()
+            
             // Auto zoom in ke posisi user saat pertama buka
-            .onAppear {
+            .onChange(of: locationManager.lastLocation) { newLocation in
+                guard let coord = newLocation?.coordinate, !sudahZoomAwal else { return }
+                sudahZoomAwal = true
                 withAnimation(.easeInOut(duration: 1.0)) {
                     cameraPosition = .region(MKCoordinateRegion(
-                        center: LocationManager().lastLocation?.coordinate
-                            ?? CLLocationCoordinate2D(latitude: -5.147665, longitude: 119.432732),
+                        center: coord,
                         span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002)
                     ))
                 }
@@ -190,6 +198,13 @@ struct PantauView: View {
         } message: {
             Text("Pemantauan akan dihentikan.")
         }
+        
+        // alert validasi harus isi nama zona
+        .alert("Lengkapi Data Zona", isPresented: $showValidasiError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Nama zona tidak boleh kosong. Harap isi nama zona sebelum memulai pemantauan.")
+        }
     }
     
     // MARK: - Pantau Content
@@ -251,6 +266,12 @@ struct PantauView: View {
                 sheetDetent = .height(320)
             }
         } else {
+            // Validasi nama zona tidak boleh kosong
+            guard !namaZona.trimmingCharacters(in: .whitespaces).isEmpty else {
+                showValidasiError = true
+                return
+            }
+
             guard let lokasi = locationManager.lastLocation?.coordinate else { return }
             monitoringManager.namaZona = namaZona
             monitoringManager.jenisZona = selectedZona

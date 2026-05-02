@@ -84,7 +84,7 @@ struct RiwayatView: View {
                     )
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 20)
+                .padding(.bottom, 24)
  
                 // MARK: Daftar riwayat
                 if semuaSesi.isEmpty {
@@ -98,9 +98,22 @@ struct RiwayatView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.top, 60)
                 } else {
-                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                    VStack(spacing: 0) {
                         ForEach(grouped, id: \.label) { grup in
-                            Section {
+                            // Section header
+                            HStack {
+                                Text(grup.label)
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 8)
+                            .padding(.bottom, 10)
+
+                            // Cards
+                            VStack(spacing: 10) {
                                 ForEach(grup.sesi) { sesi in
                                     Button {
                                         sesiDipilih = sesi
@@ -108,21 +121,10 @@ struct RiwayatView: View {
                                         RiwayatCardView(sesi: sesi)
                                     }
                                     .buttonStyle(.plain)
- 
-                                    Divider()
-                                        .padding(.leading, 76)
                                 }
-                            } header: {
-                                HStack {
-                                    Text(grup.label)
-                                        .font(.headline)
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 8)
-                                .background(Color(.systemGroupedBackground))
                             }
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 16)
                         }
                     }
                 }
@@ -201,18 +203,20 @@ struct RiwayatCardView: View {
  
     var body: some View {
         HStack(spacing: 0) {
-            // Strip warna kiri
-            Rectangle()
+            // Strip warna kiri dengan corner radius kiri
+            RoundedRectangle(cornerRadius: 2)
                 .fill(warnaStrip)
-                .frame(width: 5)
- 
+                .frame(width: 30)
+                .padding(.vertical, 0)
+//                .padding(.leading, 12)
+
             HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text(sesi.namaZona)
                         .font(.body)
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)
- 
+
                     // Badge status
                     HStack(spacing: 5) {
                         Circle()
@@ -224,25 +228,27 @@ struct RiwayatCardView: View {
                             .foregroundColor(badgeWarna)
                     }
                     .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 5)
                     .background(badgeBg)
                     .clipShape(Capsule())
                 }
- 
+
                 Spacer()
- 
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(waktuFormatted)
+
+                VStack(alignment: .trailing, spacing: 6) {
+                    Image(systemName: "chevron.right")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Image(systemName: "chevron.right")
+                    Text(waktuFormatted)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 16)
         }
         .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: 2)
     }
 }

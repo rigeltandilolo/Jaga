@@ -157,14 +157,14 @@ struct RiwayatDetailView: View {
                     .fill(Color(.tertiarySystemGroupedBackground))
                     .frame(width: 44, height: 44)
                 Image(systemName: "clock.arrow.circlepath")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color(hex: "#185FA5"))
             }
  
             VStack(alignment: .leading, spacing: 0) {
                 Text("Kronologi Pemantauan")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                    .padding(.top, 12)
+//                    .padding(.top, 12)
                     .padding(.bottom, 8)
  
                 // Timeline items
@@ -205,8 +205,10 @@ struct RiwayatDetailView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading) // ← tambahkan ini
         }
         .padding(16)
+        .alignmentGuide(.top) { d in d[.top] } // ← pastikan HStack rata atas
     }
  
     // MARK: - Nama Zona Row
@@ -215,7 +217,7 @@ struct RiwayatDetailView: View {
         HStack(alignment: .top, spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(Color(hex: "#E6F1FB"))
+                    .fill(Color(.tertiarySystemGroupedBackground))
                     .frame(width: 44, height: 44)
                 Image(systemName: "mappin.and.ellipse")
                     .foregroundColor(Color(hex: "#185FA5"))
@@ -248,7 +250,7 @@ struct RiwayatDetailView: View {
                     .fill(Color(.tertiarySystemGroupedBackground))
                     .frame(width: 44, height: 44)
                 Image(systemName: "timer")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color(hex: "#185FA5"))
             }
  
             VStack(alignment: .leading, spacing: 4) {
@@ -458,19 +460,4 @@ struct RiwayatMapsView: View {
             Text(label).font(.caption).foregroundColor(.primary)
         }
     }
-}
- 
-#Preview {
-    RiwayatDetailView(sesi: {
-        let s = RiwayatSesi(
-            namaZona: "Zona Panti Oma Uci",
-            jenisZonaLabel: "Ketat (~10m)",
-            pusatKoordinat: CLLocationCoordinate2D(latitude: -5.147665, longitude: 119.432731),
-            zonaRadius: 10
-        )
-        s.alamatZona   = "Jl. Sungai Saddang Lama"
-        s.statusAkhirRaw = StatusSesi.keluarZona.rawValue
-        s.jumlahKeluarZona = 2
-        return s
-    }())
 }
