@@ -12,7 +12,11 @@ struct RiwayatView: View {
     @Query(sort: \RiwayatSesi.waktuMulai, order: .reverse)
     private var semuaSesi: [RiwayatSesi]
  
+    @Environment(\.modelContext) private var modelContext
+ 
     @State private var sesiDipilih: RiwayatSesi? = nil
+    @State private var sesiAkanDihapus: RiwayatSesi? = nil
+    @State private var tampilkanAlert: Bool = false
  
     // MARK: - Statistik
     private var totalPantau: Int { semuaSesi.count }
@@ -97,7 +101,9 @@ struct RiwayatView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.top, 60)
-                } else {
+                }
+                
+                else {
                     VStack(spacing: 0) {
                         ForEach(grouped, id: \.label) { grup in
                             // Section header
@@ -115,12 +121,16 @@ struct RiwayatView: View {
                             // Cards
                             VStack(spacing: 10) {
                                 ForEach(grup.sesi) { sesi in
-                                    Button {
-                                        sesiDipilih = sesi
-                                    } label: {
-                                        RiwayatCardView(sesi: sesi)
-                                    }
-                                    .buttonStyle(.plain)
+                                    SwipeToDeleteCard(
+                                        sesi: sesi,
+                                        onTap: {
+                                            sesiDipilih = sesi
+                                        },
+                                        onHapus: {
+                                            sesiAkanDihapus = sesi
+                                            tampilkanAlert = true
+                                        }
+                                    )
                                 }
                             }
                             .padding(.horizontal, 20)
@@ -135,7 +145,26 @@ struct RiwayatView: View {
         .sheet(item: $sesiDipilih) { sesi in
             RiwayatDetailView(sesi: sesi)
         }
+        .alert("Hapus Riwayat?", isPresented: $tampilkanAlert, presenting: sesiAkanDihapus) { sesi in
+            Button("Hapus", role: .destructive) {
+                hapusSesi(sesi)
+            }
+            Button("Batal", role: .cancel) {
+                sesiAkanDihapus = nil
+            }
+        } message: { sesi in
+            Text("Riwayat \"\(sesi.namaZona)\" akan dihapus secara permanen.")
+        }
     }
+ 
+    // MARK: - Hapus Sesi
+    private func hapusSesi(_ sesi: RiwayatSesi) {
+        modelContext.delete(sesi)
+        try? modelContext.save()
+        sesiAkanDihapus = nil
+    }
+    
+
  
     // MARK: - Stat Card Builder
     @ViewBuilder
@@ -164,6 +193,81 @@ struct RiwayatView: View {
         .padding(16)
         .background(bg)
         .clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+}
+
+// MARK: - Swipe To Delete Card Wrapper
+struct SwipeToDeleteCard: View {
+    let sesi: RiwayatSesi
+    let onTap: () -> Void
+    let onHapus: () -> Void
+ 
+    @State private var offsetX: CGFloat = 0
+    @State private var isDragging: Bool = false
+ 
+    private let hapusButtonWidth: CGFloat = 80
+    private let threshold: CGFloat = 50
+ 
+    var body: some View {
+        ZStack(alignment: .trailing) {
+ 
+            // MARK: Tombol Hapus (di belakang card)
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(hex: "#C0392B"))
+                Image(systemName: "trash.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+            .frame(width: hapusButtonWidth)
+            .contentShape(Rectangle())
+            .zIndex(1)
+            .opacity(offsetX < -10 ? 1 : 0)
+            .onTapGesture {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    offsetX = 0
+                }
+                onHapus()
+            }
+ 
+            // MARK: Card Utama
+            RiwayatCardView(sesi: sesi)
+                .offset(x: offsetX)
+                .zIndex(0)
+//                .animation(.spring(), value: offsetX)
+                .contentShape(Rectangle())
+                // Drag gesture (prioritas utama)
+                .highPriorityGesture(
+                    DragGesture(minimumDistance: 15, coordinateSpace: .local)
+                        .onChanged { value in
+                            // Hanya proses jika gerak horizontal lebih dominan
+                            guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                            isDragging = true
+                            let translation = min(0, value.translation.width)
+                            if translation < -hapusButtonWidth {
+                                offsetX = -hapusButtonWidth + (translation + hapusButtonWidth) * 0.2
+                            } else {
+                                offsetX = translation
+                            }
+                        }
+                        .onEnded { _ in
+                            isDragging = false
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                offsetX = offsetX < -threshold ? -hapusButtonWidth : 0
+                            }
+                        }
+                )
+                // Tap gesture (hanya aktif jika tidak sedang drag)
+                .onTapGesture {
+                    // kalau lagi kebuka, jangan langsung nutup
+                    if offsetX == 0 {
+                        onTap()
+                    }
+                }
+        }
+        // Penting: overflow disembunyikan tapi hit area tetap penuh
+        .frame(maxWidth: .infinity)
+        .clipped()
     }
 }
  
