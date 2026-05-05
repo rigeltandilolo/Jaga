@@ -374,19 +374,19 @@ struct PantauView: View {
     //UKURAN SHEET TIAP FITUR
     private var detentsForCurrentState: Set<PresentationDetent> {
         if selectedTab == 1 {
-            // RIWAYAT → tetap flexible
+            // riwayat
             return [.height(340), .large]
             
         } else if monitoringManager.isMemantau {
-            // 🔥 MONITORING → FIX (sesuai desain kamu)
+            // monitoring
             return [.height(380)]
             
         } else if isFormVisible {
-            // FORM INPUT
+            // input form
             return [.height(320)]
             
         } else {
-            // DEFAULT (button only)
+            // button
             return [.height(200)]
         }
     }

@@ -275,13 +275,13 @@ struct SwipeToDeleteCard: View {
 struct RiwayatCardView: View {
     let sesi: RiwayatSesi
  
-    private var warnaStrip: Color {
-        switch sesi.statusAkhir {
-        case .aman:       return Color(hex: "#1D9E75")
-        case .keluarZona: return Color(hex: "#A32D2D")
-        case .disconnect: return Color(hex: "#B85C00")
-        }
-    }
+//    private var warnaStrip: Color {
+//        switch sesi.statusAkhir {
+//        case .aman:       return Color(hex: "#1D9E75")
+//        case .keluarZona: return Color(hex: "#A32D2D")
+//        case .disconnect: return Color(hex: "#B85C00")
+//        }
+//    }
  
     private var badgeWarna: Color {
         switch sesi.statusAkhir {
@@ -309,7 +309,7 @@ struct RiwayatCardView: View {
         HStack(spacing: 0) {
             // Strip warna kiri dengan corner radius kiri
             RoundedRectangle(cornerRadius: 2)
-                .fill(warnaStrip)
+                .fill(badgeWarna)
                 .frame(width: 30)
                 .padding(.vertical, 0)
 //                .padding(.leading, 12)

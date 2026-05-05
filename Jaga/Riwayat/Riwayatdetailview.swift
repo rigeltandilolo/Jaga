@@ -205,10 +205,10 @@ struct RiwayatDetailView: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading) // ← tambahkan ini
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(16)
-        .alignmentGuide(.top) { d in d[.top] } // ← pastikan HStack rata atas
+        .alignmentGuide(.top) { d in d[.top] } //HStack rata atas
     }
  
     // MARK: - Nama Zona Row

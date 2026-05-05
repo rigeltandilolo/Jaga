@@ -15,17 +15,15 @@ struct SplashScreenView: View {
             VStack {
                 Spacer()
                 
-                // Logo
                 VStack(spacing: 0) {
-                    Image("SplashScreen") // ganti dengan nama asset logo kamu
+                    Image("SplashScreen")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 400)
                 }
                 
                 Spacer()
-                
-                // Tagline
+
                 Text("Selalu dekat, selalu terjaga.")
                     .font(.subheadline)
                     .foregroundColor(Color(hex: "#000000"))

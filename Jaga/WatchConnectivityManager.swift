@@ -47,7 +47,7 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
  
-    // ✅ Dipanggil iOS otomatis setiap kali reachability Watch berubah
+    // Dipanggil iOS otomatis setiap kali reachability Watch berubah
     func sessionReachabilityDidChange(_ session: WCSession) {
 //        DispatchQueue.main.async {
 //            let connected = session.isReachable
@@ -112,7 +112,7 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     }
  
     // MARK: - Timer Timeout
-    // Jika 30 detik tidak ada data dari Watch → anggap disconnect
+    // Jika 30 detik tidak ada data dari watch, anggap disconnect
     private func resetTimeoutTimer() {
         timeoutTimer?.invalidate()
         timeoutTimer = Timer.scheduledTimer(withTimeInterval: timeoutInterval, repeats: false) { [weak self] _ in

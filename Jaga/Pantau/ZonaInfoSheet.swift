@@ -76,7 +76,3 @@ struct ZonaInfoSheet: View {
         .presentationCornerRadius(50)
     }
 }
-
-#Preview {
-    ZonaInfoSheet(isPresented: .constant(true))
-}

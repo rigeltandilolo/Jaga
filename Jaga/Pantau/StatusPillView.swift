@@ -30,7 +30,3 @@ struct StatusPillView: View {
         .clipShape(Capsule())
     }
 }
-
-#Preview {
-    StatusPillView(isMemantau: false)
-}

@@ -31,7 +31,7 @@ enum StatusSesi: String, Codable {
 class KejadianItem {
     var id: UUID
     var waktu: Date
-    var jenisRaw: String        // simpan sebagai String karena SwiftData belum support enum langsung
+    var jenisRaw: String        //String karena SwiftData belum support enum
     var latitude: Double
     var longitude: Double
  

@@ -61,10 +61,3 @@ struct PilihJenisZonaSheet: View {
         .presentationCornerRadius(50)
     }
 }
-
-#Preview {
-    PilihJenisZonaSheet(
-        isPresented: .constant(true),
-        selectedZona: .constant(.ketat)
-    )
-}
