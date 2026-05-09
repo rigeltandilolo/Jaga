@@ -29,7 +29,7 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
  
-    // MARK: - Public: cek koneksi manual (dipakai OnboardingView)
+    // MARK: cek koneksi manual (dipakai OnboardingView)
     func checkWatchConnection() {
         let connected = WCSession.default.activationState == .activated
             && WCSession.default.isWatchAppInstalled
@@ -87,6 +87,11 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
             DispatchQueue.main.async {
                 self.lokasiWatch = CLLocationCoordinate2D(latitude: lat, longitude: lon)
             }
+        }
+        
+        // Update battery dari context (heartbeat maupun lokasi)
+        if let battery = applicationContext["battery"] as? Float {
+            DispatchQueue.main.async { self.watchBattery = battery }
         }
 
         // Heartbeat atau lokasi = Watch masih terhubung

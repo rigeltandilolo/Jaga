@@ -10,6 +10,14 @@ import WatchConnectivity
 import WatchKit
 import Combine
 
+
+// MARK: - Battery
+private func currentBatteryLevel() -> Float {
+    WKInterfaceDevice.current().isBatteryMonitoringEnabled = true
+    let level = WKInterfaceDevice.current().batteryLevel // 0.0–1.0, -1 jika tidak tersedia
+    return level < 0 ? 1.0 : level
+}
+
 class WatchLocationManager: NSObject, ObservableObject, CLLocationManagerDelegate, WKExtendedRuntimeSessionDelegate {
     private let manager = CLLocationManager()
     private let sessionManager = WatchSessionManager.shared
@@ -24,7 +32,7 @@ class WatchLocationManager: NSObject, ObservableObject, CLLocationManagerDelegat
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.distanceFilter = 3 // update setiap bergerak 5 meter
+        manager.distanceFilter = 3 // update setiap bergerak 3 meter
         manager.requestWhenInUseAuthorization()
         manager.startUpdatingLocation()
         
@@ -50,12 +58,14 @@ class WatchLocationManager: NSObject, ObservableObject, CLLocationManagerDelegat
 
         var payload: [String: Any] = ["heartbeat": true]
 
-        // Sertakan lokasi terakhir jika ada (supaya iPhone tetap punya lokasi terbaru)
+        // lokasi terakhir supaya iPhone tetap punya lokasi terbaru
         if let loc = currentLocation {
             payload["latitude"]  = loc.coordinate.latitude
             payload["longitude"] = loc.coordinate.longitude
         }
-
+        
+        // battery level Watch
+        payload["battery"] = currentBatteryLevel()
         payload["timestamp"] = Date().timeIntervalSince1970
 
         do {
@@ -115,10 +125,11 @@ class WatchLocationManager: NSObject, ObservableObject, CLLocationManagerDelegat
         let locationData: [String: Any] = [
             "latitude": location.coordinate.latitude,
             "longitude": location.coordinate.longitude,
+            "battery": currentBatteryLevel(),
             "timestamp": Date().timeIntervalSince1970
         ]
         
-        // Coba sendMessage dulu (real-time)
+        // Coba sendMessage real time
         if WCSession.default.isReachable {
             WCSession.default.sendMessage(locationData, replyHandler: { _ in }) { error in
                 print("sendMessage error: \(error.localizedDescription)")
