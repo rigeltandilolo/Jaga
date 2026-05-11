@@ -29,7 +29,7 @@ struct ZonaInfoSheet: View {
                                         .foregroundColor(.secondary)
                                 }
                             }
-                            Text(zona.deskripsi)
+                            Text(zona.deskripsi) //deskripsi lengkap tiap zona
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)

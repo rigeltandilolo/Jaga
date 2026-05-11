@@ -81,7 +81,7 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     func session(_ session: WCSession,
                  didReceiveApplicationContext applicationContext: [String: Any]) {
 
-        // Update lokasi hanya kalau ada koordinat (bukan pure heartbeat)
+        // Update lokasi hanya kalau ada koordinat
         if let lat = applicationContext["latitude"] as? Double,
            let lon = applicationContext["longitude"] as? Double {
             DispatchQueue.main.async {

@@ -59,17 +59,14 @@ struct PantauView: View {
                                 .frame(width: 52, height: 52)
                                 .offset(y: 2)
                             
-                            // Border putih
                             Circle()
                                 .fill(.white)
                                 .frame(width: 48, height: 48)
                             
-                            // Isi — bisa foto atau inisial
                             Circle()
                                 .fill(Color(hex: "#E6F1FB"))
                                 .frame(width: 44, height: 44)
                             
-                            // Inisial atau ikon lansia
                             Text("👴")
                                 .font(.system(size: 26))
                         }
