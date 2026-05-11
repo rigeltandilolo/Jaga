@@ -130,14 +130,14 @@ class MonitoringManager: ObservableObject {
           isKeluarZona = keluarSekarang
           isDalamZona  = !keluarSekarang
    
-          // Baru keluar zona → notif + catat riwayat
+          // baru keluar zona = notif n catat riwayat
           if keluarSekarang && !wasKeluarZona {
               let nama = namaZona.isEmpty ? "Lansia" : namaZona
               NotificationManager.shared.kirimNotifKeluarZona(namaZona: nama)
               RiwayatManager.shared.catatKeluarZona(koordinat: lokasiLansia)
           }
    
-          // Baru kembali ke zona
+          // baru kembali ke zona
           if !keluarSekarang && wasKeluarZona {
               RiwayatManager.shared.catatKembaliKeZona(koordinat: lokasiLansia)
           }

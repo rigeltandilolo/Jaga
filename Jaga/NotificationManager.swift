@@ -48,9 +48,9 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
  
         let content = UNMutableNotificationContent()
         content.title = "🔴 \(namaZona.uppercased()) KELUAR ZONA AMAN"
-        content.body  = "\(namaZona) terdeteksi keluar dari zona aman! Cepat cegat sebelum tambah jauh cuy??"
-        content.sound = .defaultCritical  // suara lebih mencolok
-        content.interruptionLevel = .critical // muncul bahkan saat Do Not Disturb (iOS 15+)
+        content.body  = "\(namaZona) terdeteksi keluar dari zona aman! Segera Cegat!"
+        content.sound = .defaultCritical  // suara notif
+        content.interruptionLevel = .critical // muncul saat Do Not Disturb
  
         kirimNotifikasi(id: idKeluarZona, content: content)
     }
